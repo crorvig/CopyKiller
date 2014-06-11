@@ -181,7 +181,13 @@ public class KillerGui extends JFrame{
 				statusLabel.setText("Browsing Depth: " + depth);
 			}
 		});
-
+		
+		JMenuItem mntmDup = new JMenuItem("Remove All Duplicates");
+		mntmDup.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				KillerTableOperation.deleteAllDuplicates(dtm);
+			}
+		});
 		//Quit button
 		JMenuItem mntmQuit = new JMenuItem("Quit");
 		mntmQuit.addActionListener(new ActionListener(){
@@ -199,6 +205,7 @@ public class KillerGui extends JFrame{
 		
 		mnFile.add(mntmOpenFolder);
 		mnFile.add(mntmDepth);
+		mnFile.add(mntmDup);
 		mnFile.add(mntmAbout);
 		mnFile.add(mntmQuit);
 		menuBar.add(mnFile);

@@ -46,6 +46,7 @@ public class CopyKiller {
 		Collections.sort(fileList, FileInfo.FileMD5Comparator);
 	}
 	
+	
 	//sorts the file list by file length, and generates MD5 hashes for 
 	//items with the same size
 	void sortByLength(){

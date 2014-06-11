@@ -8,7 +8,10 @@
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Vector;
+
 import javax.swing.table.DefaultTableModel;
 
 
@@ -28,6 +31,7 @@ public class KillerTableOperation {
 		for (Vector<String> row : resultTable){
 			table.addRow(row);
 		}
+		sortByColumn(table);
 		table.fireTableDataChanged();
 	}	
 	
@@ -53,5 +57,21 @@ public class KillerTableOperation {
 		} catch (IOException e) {
 			System.err.println("IOException encountered: could not open " + file.toString());
 		}
+	}
+	
+	public static void deleteAllDuplicates(DefaultTableModel table){
+		for (int i = 0; i < table.getRowCount(); i++){
+			deleteFile(table, i, 1);
+		}
+		clearTable(table);
+	}
+	
+	public static void sortByColumn(DefaultTableModel table){
+		Collections.sort(table.getDataVector(), new Comparator<Vector<String>>(){
+			public int compare(Vector<String> v1, Vector<String> v2){
+				return (v1.get(0).compareTo(v2.get(0)));
+			}
+		}
+		);
 	}
 }
