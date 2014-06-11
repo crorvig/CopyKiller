@@ -42,8 +42,7 @@ public class KillerTableOperation {
 	public static boolean deleteFile(DefaultTableModel table, int row, int col){
 		String path = (String)table.getValueAt(row, col);
 		File file = new File(path);
-		return (file.exists()) ? file.delete(): false;
-		
+		return (file.exists()) ? file.delete(): false;	
 	}
 	
 	public static void openFile(File file){

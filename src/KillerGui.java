@@ -4,11 +4,10 @@ import java.util.Vector;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.Point;
 
 import javax.swing.JTable;
@@ -23,8 +22,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.JPopupMenu;
-
-import java.awt.Component;
 
 
 public class KillerGui extends JFrame{
@@ -92,10 +89,10 @@ public class KillerGui extends JFrame{
 				boolean deleted = KillerTableOperation.deleteFile(dtm,row,col);
 				if (deleted) {
 					dtm.setValueAt("", row, col);
-					statusLabel.setText("File Successfully Deleted:  Current Browsing depth: " + depth);
+					statusLabel.setText("File Successfully Deleted:  Current Browsing Depth: " + depth);
 					dtm.fireTableDataChanged();
 				}
-				else statusLabel.setText("Failed to Delete:  Current Browsing depth: " + depth);
+				else statusLabel.setText("Failed to Delete:  Current Browsing Depth: " + depth);
 			}
 		});
 		tableRMenu.add(tblRDelete);
@@ -109,11 +106,13 @@ public class KillerGui extends JFrame{
 		JMenuItem mntmOpenFolder = new JMenuItem("Open Folder");
 		mntmOpenFolder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				try{
-					statusLabel.setText("Loading Table Rows...");
-					File file = chooseFile();					
-					KillerTableOperation.updateTable(dtm, file, depth);
-					statusLabel.setText("Browsing Depth: " + depth);
+				try{					
+					boolean gotStartingDirectory = chooseFile();
+					if (gotStartingDirectory){
+						statusLabel.setText("Loading Table Rows...");
+						KillerTableOperation.updateTable(dtm, startDir, depth);
+						statusLabel.setText(dtm.getRowCount() + " Rows Updated: Browsing Depth: " + depth);
+					}
 				}
 				catch (NullPointerException npe){
 					System.err.println("NullPointerException: Invalid File or Folder");
@@ -121,9 +120,32 @@ public class KillerGui extends JFrame{
 				}
 			}
 		});
-		//mntmOpenFolder.addActionListener());
 		mnFile.add(mntmOpenFolder);
 		
+		JMenuItem mntmDepth = new JMenuItem("Set Browsing Depth");
+		mntmDepth.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				String dp = JOptionPane.showInputDialog("Enter Browsing Depth: ");
+				try {
+					depth = Math.max(Integer.parseInt(dp), 0);
+				}
+				
+				//If invalid number, defaults to zero
+				catch (NumberFormatException nfe){
+					depth = 0;
+				}
+				statusLabel.setText("Browsing Depth: " + depth);
+			}
+		});
+		mnFile.add(mntmDepth);
+		
+		JMenuItem mntmQuit = new JMenuItem("Quit");
+		mntmQuit.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				System.exit(0);
+			}
+		});
+		mnFile.add(mntmQuit);
 		return menuBar;
 	}
 	
@@ -137,18 +159,19 @@ public class KillerGui extends JFrame{
 		    public boolean isCellEditable(int row, int column) {
 		        return false;
 		    }
-		    };
+		};
+		
 		return dtm;
 	}
 
-	public File chooseFile(){
+	public boolean chooseFile(){
 		jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         int returnVal = jfc.showOpenDialog(jfc);;
         if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File file = jfc.getSelectedFile();
-            return file;
+            startDir = jfc.getSelectedFile();
+            return true;
         }
-        else return null;
+        else return false;
 	}
 	
 	public static void main(String[] args){
