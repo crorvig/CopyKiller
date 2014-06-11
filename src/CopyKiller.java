@@ -1,5 +1,14 @@
+/*
+ * @Author Chris Rorvig
+ * Last updated: 6/11/2014
+ * 
+ * This class contains the file browsing algorithms.  An arraylist of 
+ * FileInfo objects is filled by fillFileTree(), and 
+ * generateCopyTable() creates a table structure to be used by 
+ * KillerTableOperation.updateTable()
+ */
+
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Vector;
@@ -31,12 +40,7 @@ public class CopyKiller {
 			}
 		}
 	}
-	
-	//Standard getter method
-	public ArrayList<FileInfo> getFileList(){
-		return fileList;
-	}
-	
+		
 	//sorts the file List by MD5 string values
 	void sortByHash(){
 		Collections.sort(fileList, FileInfo.FileMD5Comparator);
@@ -56,9 +60,8 @@ public class CopyKiller {
 	
 	/*
 	 * Sorts then iterates through the File List to find identical MD5 hashes,
-	 * then prints the pairs of duplicate files
+	 * then returns a Vector of duplicate file pairs
 	 */
-	
 	public Vector<Vector<String>> generateCopyTable(File folder, int depth){
 		Vector<Vector<String>> table = new Vector<Vector<String>>();
 		

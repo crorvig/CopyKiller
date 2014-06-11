@@ -1,3 +1,10 @@
+/*
+ * @Author Chris Rorvig
+ * Last updated: 6/11/2014
+ * This class contains all the GUI components as well as the FileChooser
+ * and Depth Setting manipulation functions
+ */
+
 import java.io.File;
 import java.util.Vector;
 
@@ -29,42 +36,55 @@ public class KillerGui extends JFrame{
 	 * 
 	 */
 	private static final long serialVersionUID = 123752233;
-	public JFileChooser jfc = new JFileChooser();
+	private JFileChooser jfc = new JFileChooser();
+	private JPopupMenu tableRMenu;
 	private DefaultTableModel dtm;
 	private int depth = 3;
 	private JTable table;
 	private final JLabel statusLabel = new JLabel("Browsing Depth: 3");
 	File startDir;
 	
-	
+	//Construct the window, initialize the gui components
 	public KillerGui(){
 		initTable();
-		
-		JScrollPane scrollPane = new JScrollPane(table);
-		table.setFillsViewportHeight(true);	
-		getContentPane().add(scrollPane, BorderLayout.CENTER);
+		initPopupMenu();
 		
 		JMenuBar menuBar = initMenuBar();
+	
+		JScrollPane scrollPane = new JScrollPane(table);
+		table.setFillsViewportHeight(true);	
+		
+		getContentPane().add(scrollPane, BorderLayout.CENTER);
 		getContentPane().add(menuBar,BorderLayout.NORTH);
 		getContentPane().add(statusLabel, BorderLayout.SOUTH);
+		
 		setTitle("Copy Killer");
 		setSize(720, 480);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setVisible(true);
 	}
 	
+	//Set up JTable and DataTableModel
 	private void initTable(){
+		
 		dtm = initTableModel();
+		
 		table = new JTable(dtm);
+		
+		//Add right click and double click functions
 		table.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
+				
+				//Double Click : Open File
 				if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
 					JTable tab = (JTable)e.getSource();
 					int row = tab.getSelectedRow();
 					int col = tab.getSelectedColumn();
 					KillerTableOperation.openFile(dtm, row, col);
 				}
+
+				//Right Click : Popup Menu
 				else if (e.getButton() == MouseEvent.BUTTON3){
 					Point p = e.getPoint();
 					int row = table.rowAtPoint(p);
@@ -74,14 +94,13 @@ public class KillerGui extends JFrame{
 				}
 			}
 		});
-		
-		
 	}
 	
-	
-	private void callPopupMenu(MouseEvent e){
-		JPopupMenu tableRMenu = new JPopupMenu();
-		JMenuItem tblRDelete = new JMenuItem("Delete item");
+	//popup initialization for constructor
+	private void initPopupMenu(){
+		tableRMenu = new JPopupMenu();
+		
+		JMenuItem tblRDelete = new JMenuItem("Delete File");
 		tblRDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int row = table.getSelectedRow();
@@ -95,24 +114,48 @@ public class KillerGui extends JFrame{
 				else statusLabel.setText("Failed to Delete:  Current Browsing Depth: " + depth);
 			}
 		});
+		
+		JMenuItem tblROpen = new JMenuItem("Open File");
+		tblROpen.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				int row = table.getSelectedRow();
+				int col = table.getSelectedColumn();
+				KillerTableOperation.openFile(dtm, row, col);
+			}
+		});
+		
+		tableRMenu.add(tblROpen);
 		tableRMenu.add(tblRDelete);
-		tableRMenu.show(this, e.getXOnScreen(), e.getYOnScreen());
 	}
 	
+	//opens the PopupMenu
+	private void callPopupMenu(MouseEvent e){
+		Point p = e.getPoint();
+		tableRMenu.show(this, p.x, p.y);
+	}
+	
+	//Initializes the menu bar
 	private JMenuBar initMenuBar(){
 		JMenuBar menuBar = new JMenuBar();		
 		JMenu mnFile = new JMenu("File");
-		menuBar.add(mnFile);		
+		
+		//Open Folder - Implements updateTable()
 		JMenuItem mntmOpenFolder = new JMenuItem("Open Folder");
 		mntmOpenFolder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				try{					
+				try{
+					
+					statusLabel.setText("Loading Table Rows...");
 					boolean gotStartingDirectory = chooseFile();
+					
+					//file chosen
 					if (gotStartingDirectory){
-						statusLabel.setText("Loading Table Rows...");
 						KillerTableOperation.updateTable(dtm, startDir, depth);
 						statusLabel.setText(dtm.getRowCount() + " Rows Updated: Browsing Depth: " + depth);
 					}
+					
+					//else reset status
+					else statusLabel.setText("Browsing Depth: " + depth);
 				}
 				catch (NullPointerException npe){
 					System.err.println("NullPointerException: Invalid File or Folder");
@@ -120,8 +163,9 @@ public class KillerGui extends JFrame{
 				}
 			}
 		});
-		mnFile.add(mntmOpenFolder);
-		
+
+			
+		//Set Browsing Depth
 		JMenuItem mntmDepth = new JMenuItem("Set Browsing Depth");
 		mntmDepth.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
@@ -137,25 +181,42 @@ public class KillerGui extends JFrame{
 				statusLabel.setText("Browsing Depth: " + depth);
 			}
 		});
-		mnFile.add(mntmDepth);
-		
+
+		//Quit button
 		JMenuItem mntmQuit = new JMenuItem("Quit");
 		mntmQuit.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
 				System.exit(0);
 			}
 		});
+		
+		JMenuItem mntmAbout = new JMenuItem("About");
+		mntmAbout.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				JOptionPane.showConfirmDialog(rootPane, "CopyKiller v0.11\nCopyright 2014 by Chris Rorvig", "CopyKiller v0.11", JOptionPane.OK_OPTION);
+			}
+		});
+		
+		mnFile.add(mntmOpenFolder);
+		mnFile.add(mntmDepth);
+		mnFile.add(mntmAbout);
 		mnFile.add(mntmQuit);
+		menuBar.add(mnFile);
+		
 		return menuBar;
 	}
 	
+	//Initializes the DefaultTableModel object
 	private DefaultTableModel initTableModel(){
 		Vector<String> columnTitles = new Vector<String>();
+		
 		Vector<Vector<String>> tableData = new Vector<Vector<String>>();
 		columnTitles.add("File");
 		columnTitles.add("Duplicate File");	
+		
 		DefaultTableModel dtm = new DefaultTableModel(tableData, columnTitles){
-		    @Override
+			private static final long serialVersionUID = 4045087527715574481L;
+			@Override
 		    public boolean isCellEditable(int row, int column) {
 		        return false;
 		    }
@@ -164,6 +225,7 @@ public class KillerGui extends JFrame{
 		return dtm;
 	}
 
+	//JFileChooser : Returns true if a folder is chosen, false otherwise
 	public boolean chooseFile(){
 		jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         int returnVal = jfc.showOpenDialog(jfc);;
@@ -174,6 +236,7 @@ public class KillerGui extends JFrame{
         else return false;
 	}
 	
+	//Main method
 	public static void main(String[] args){
 		KillerGui kg = new KillerGui();
 	}
